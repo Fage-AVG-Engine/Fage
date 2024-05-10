@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <nullable>enable</nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FontStashSharp.MonoGame" Version="1.3.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageReference Include="MonoGame.Extended.Input" Version="3.8.0" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+    <PackageReference Include="NeoLua" Version="1.3.14" />
+    <PackageReference Include="Realm" Version="11.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- <PackageReference Include="Fage.Script" Version="1.0.0"/> -->
+    <ProjectReference Include="..\..\FageScript\Fage.Script\Fage.Script.csproj" />
+  </ItemGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);MONOGAME;MONOGAME_WINDOWSDX</DefineConstants>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NeutralLanguage>zh-Hans</NeutralLanguage>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Include="Microsoft.Xna.Framework" />
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+</Project>

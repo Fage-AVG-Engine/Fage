@@ -1,0 +1,116 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "additionalProperties": {},
+    "defaultProperties": [],
+    "properties": {
+        "FageStartup": {
+            "additionalProperties": {},
+            "defaultProperties": [],
+            "properties": {
+                "DebugFontName": {
+                    "type": "string"
+                },
+                "FontSearchPath": {
+                    "type": "string"
+                },
+                "GenericFontFamilyFileNames": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "SplashScreen": {
+                    "defaultProperties": [],
+                    "properties": {
+                        "SplashOptions": {
+                            "defaultProperties": [],
+                            "properties": {
+                                "DefaultImageDurationSeconds": {
+                                    "type": "number"
+                                },
+                                "FadeInSeconds": {
+                                    "type": "number"
+                                },
+                                "FadeOutSeconds": {
+                                    "type": "number"
+                                },
+                                "InterludeSeconds": {
+                                    "type": "number"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "SplashScreenItems": {
+                            "items": {
+                                "defaultProperties": [],
+                                "properties": {
+                                    "Duration": {
+                                        "pattern": "^[0-9]*:[0-9]*:[0-9]*.[0-9]*$",
+                                        "type": "string"
+                                    },
+                                    "ResourceName": {
+                                        "type": "string"
+                                    },
+                                    "Type": {
+                                        "enum": [
+                                            "Image",
+                                            "Video"
+                                        ],
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "ResourceName",
+                                    "Type"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "SplashOptions",
+                        "SplashScreenItems"
+                    ],
+                    "type": "object"
+                },
+                "TitleScreen": {
+                    "defaultProperties": [],
+                    "properties": {
+                        "NewGame": {
+                            "defaultProperties": [],
+                            "properties": {
+                                "InitialScript": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "InitialScript"
+                            ],
+                            "type": "object"
+                        },
+                        "TitleBackgroundTextureName": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "NewGame",
+                        "TitleBackgroundTextureName"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "GenericFontFamilyFileNames",
+                "SplashScreen",
+                "TitleScreen"
+            ],
+            "type": "object"
+        }
+    },
+    "required": [
+        "FageStartup"
+    ],
+    "type": "object"
+}
+

@@ -1,0 +1,12 @@
+{
+	"type": "module",
+	"devDependencies": {
+		"@types/node": "^20.11.30",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.4.3",
+		"typescript-to-json-schema": "^0.6.1"
+	},
+	"scripts": {
+		"generate-pnpx": "pnpx typescript-json-schema -o startup-definition.schema.json --required --strictNullChecks --defaultProps startup-definition.ts RootObject"
+	}
+}
