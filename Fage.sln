@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "etc", "etc", "{085C9B2D-132
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		exclusion.dic.txt = exclusion.dic.txt
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
