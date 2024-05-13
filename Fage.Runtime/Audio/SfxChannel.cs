@@ -4,7 +4,9 @@ namespace Fage.Runtime.Audio;
 
 public class SfxChannel : AudioChannelBase, IDisposable
 {
-	private readonly Queue<SoundEffect> _unloadQueue;
+	private const int SafeUnloadDelay = 10;
+	// 不要传出这个类以外
+	private readonly List<(SoundEffect, TimeSpan SuggestedUnloadTime)> _unloadQueue;
 	private bool disposedValue;
 	private bool _unloading;
 
@@ -26,7 +28,7 @@ public class SfxChannel : AudioChannelBase, IDisposable
 		{
 			var effect = Contents.Load<SoundEffect>(effectName);
 			effect.Play(Volume.Value, 0, 0);
-			_unloadQueue.Enqueue(effect);
+			_unloadQueue.Add((effect, EstimatedAudioThreadTime + effect.Duration + TimeSpan.FromMilliseconds(SafeUnloadDelay)));
 		}
 		else
 		{
@@ -36,7 +38,16 @@ public class SfxChannel : AudioChannelBase, IDisposable
 
 	public void UnloadPlayedEffects()
 	{
-		// no-op
+		for (int i = _unloadQueue.Count - 1; i != 0; i--)
+		{
+			var effect = _unloadQueue[i];
+			if (effect.SuggestedUnloadTime < EstimatedAudioThreadTime)
+			{
+				Contents.UnloadAsset(effect.Item1.Name);
+				_unloadQueue.RemoveAt(i);
+				i--;
+			}
+		}
 	}
 
 	public void UnloadResources()
@@ -44,7 +55,7 @@ public class SfxChannel : AudioChannelBase, IDisposable
 		_unloading = true;
 		foreach (var effect in _unloadQueue)
 		{
-			Contents.UnloadAsset(effect.Name);
+			Contents.UnloadAsset(effect.Item1.Name);
 		}
 		_unloadQueue.Clear();
 	}

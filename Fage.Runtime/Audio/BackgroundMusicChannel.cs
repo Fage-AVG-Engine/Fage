@@ -43,15 +43,15 @@ public class BackgroundMusicChannel : AudioChannelBase
 	/// <summary>
 	/// 切歌过渡效果开始的时机
 	/// </summary>
-	public DateTime SwitchingBeginTime { get; set; }
+	public TimeSpans SwitchingBeginTime { get; set; }
 	/// <summary>
 	/// 切歌过渡效果结束的时机
 	/// </summary>
-	public DateTime SwitchingEndTime { get; set; }
+	public TimeSpan SwitchingEndTime { get; set; }
 	/// <summary>
 	/// 处于切歌过渡效果中时，播放下一首音乐的时机
 	/// </summary>
-	public DateTime SwitchingNextBgmBeginTime { get; set; }
+	public TimeSpan SwitchingNextBgmBeginTime { get; set; }
 
 	internal void SetNextBgm(string? nextBgmName, Song nextBgm, TimeSpan fadeoutLength, TimeSpan fadeInLength, TimeSpan leadingSilenceLength)
 	{
@@ -69,7 +69,7 @@ public class BackgroundMusicChannel : AudioChannelBase
 		curveKeys.Add(new((float)fadeoutLength.TotalMilliseconds, 0f) { Continuity = CurveContinuity.Smooth });
 		curveKeys.Add(new((float)(switchingEffectDuration - fadeInLength).TotalMilliseconds, 0f) { Continuity = CurveContinuity.Smooth });
 		curveKeys.Add(new((float)switchingEffectDuration.TotalMilliseconds, 1f) { Continuity = CurveContinuity.Smooth });
-		var now = DateTime.Now;
+		var now = EstimatedAudioThreadTime;
 		SetNextBgm(
 			nextBgmName,
 			nextBgm,
@@ -107,7 +107,7 @@ public class BackgroundMusicChannel : AudioChannelBase
 		SetNextBgm(nextBgmName, bgmSong);
 	}
 
-	internal void SetNextBgm(string? nextBgmName, Song nextBgm, Curve switchingVolumeCurve, DateTime switchingBegin, DateTime switchingEnd, DateTime switchingNextBgmBegin)
+	internal void SetNextBgm(string? nextBgmName, Song nextBgm, Curve switchingVolumeCurve, TimeSpan switchingBegin, TimeSpan switchingEnd, TimeSpan switchingNextBgmBegin)
 	{
 		_nextBgm = nextBgm;
 		_nextBgmName = nextBgmName;
@@ -117,7 +117,7 @@ public class BackgroundMusicChannel : AudioChannelBase
 		SwitchingVolumeCurve = switchingVolumeCurve;
 	}
 
-	public void SetNextBgm(string nextBgmName, Curve switchingVolumeCurve, DateTime switchingBegin, DateTime switchingEnd, DateTime switchingNextBgmBegin)
+	public void SetNextBgm(string nextBgmName, Curve switchingVolumeCurve, TimeSpan switchingBegin, TimeSpan switchingEnd, TimeSpan switchingNextBgmBegin)
 		=> SetNextBgm(nextBgmName, Contents.Load<Song>(Path.Combine("Bgm", nextBgmName)), switchingVolumeCurve, switchingBegin, switchingEnd, switchingNextBgmBegin);
 	public void SwitchToNextBgmImmediately(string? nextBgmName)
 	{
@@ -139,8 +139,7 @@ public class BackgroundMusicChannel : AudioChannelBase
 	protected internal sealed override void Update(GameTime gameTime)
 	{
 		var volumeBase = Volume.Value;
-		var now = DateTime.Now;
-		if (now > SwitchingEndTime)
+		if (EstimatedAudioThreadTime > SwitchingEndTime)
 		{
 			MediaPlayer.Volume = volumeBase;
 
@@ -150,10 +149,10 @@ public class BackgroundMusicChannel : AudioChannelBase
 		else
 		{
 			// 当前处于背景音乐切换过程中
-			float volumeMultiplier = SwitchingVolumeCurve.Evaluate((float)(now - SwitchingBeginTime).TotalMilliseconds);
+			float volumeMultiplier = SwitchingVolumeCurve.Evaluate((float)(EstimatedAudioThreadTime - SwitchingBeginTime).TotalMilliseconds);
 			MediaPlayer.Volume = volumeBase * volumeMultiplier;
 
-			if (now > SwitchingNextBgmBeginTime)
+			if (EstimatedAudioThreadTime > SwitchingNextBgmBeginTime)
 			{
 				SwitchBgmToNext();
 			}

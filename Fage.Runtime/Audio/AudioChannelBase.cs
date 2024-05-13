@@ -16,5 +16,8 @@ public abstract class AudioChannelBase
 	/// </remarks>
 	protected ContentManager Contents { get; }
 	public BindableFloat Volume { get; protected init; }
+
+	public TimeSpan EstimatedAudioThreadTime => new(Environment.TickCount64);
+
 	protected internal abstract void Update(GameTime gameTime);
 }
