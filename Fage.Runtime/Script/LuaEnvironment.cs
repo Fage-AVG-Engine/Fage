@@ -35,15 +35,15 @@ public class LuaEnvironment(Lua luaVM, LuaGlobal globalEnvironment)
 	protected virtual void ConfigureGlobalEnvironment(ScriptingEnvironment env)
 	{
 		GlobalEnvironment.DefineFunction("jump_to", env.JumpToAnchor);
-		GlobalEnvironment.SetMemberValue("fage", env, true);
+		GlobalEnvironment.SetMemberValue("fage", env, true, rawSet: true);
 
-		GlobalEnvironment.SetMemberValue("audio", env.Audio);
-		GlobalEnvironment.SetMemberValue("script", env.Script);
-		GlobalEnvironment.SetMemberValue("scene", env.Scene);
-		GlobalEnvironment.SetMemberValue("text_writer", env.TextWriter);
-		GlobalEnvironment.SetMemberValue("characters_manager", env.Characters);
-		GlobalEnvironment.SetMemberValue("branch", env.BranchOptionPanel);
-		GlobalEnvironment.SetMemberValue("game_engine", env.Game);
+		GlobalEnvironment.SetMemberValue("audio", env.Audio, rawSet: true);
+		GlobalEnvironment.SetMemberValue("script", env.Script, rawSet: true);
+		GlobalEnvironment.SetMemberValue("scene", env.Scene, rawSet: true);
+		GlobalEnvironment.SetMemberValue("text_writer", env.TextWriter, rawSet: true);
+		GlobalEnvironment.SetMemberValue("character_manager", env.Characters, rawSet: true);
+		GlobalEnvironment.SetMemberValue("branch", env.BranchOptionPanel, rawSet: true);
+		GlobalEnvironment.SetMemberValue("game_engine", env.Game, rawSet: true);
 
 		GlobalEnvironment.DefineFunction("block_script_execution", env.Scene.BlockScriptExecution);
 		GlobalEnvironment.DefineFunction("unblock_script_execution", env.Scene.UnblockScriptExecution);
