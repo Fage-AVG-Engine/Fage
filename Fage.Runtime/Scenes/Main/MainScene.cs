@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace Fage.Runtime.Scenes.Main;
 
-public class MainScene : Scene
+public class MainScene : CompositeLayerBasedScene
 {
 	internal readonly ContentManager Content;
 
@@ -47,7 +47,7 @@ public class MainScene : Scene
 
 	public BranchOptionPanel BranchOptionPanel { get; private set; } = null!;
 
-	public MainScene(FageTemplateGame game) : base(game)
+	public MainScene(FageTemplateGame game) : base("main", game)
 	{
 		Content = new ContentManager(game.Services, Path.Combine(game.Content.RootDirectory, ContentScopePath));
 		TextArea = new(game, Content)
@@ -117,11 +117,11 @@ public class MainScene : Scene
 		TextArea.OnLineCompleted += BlockingInstructionCompleted;
 	}
 
-	protected override void OnScreenDeactivate()
+	protected override void OnScreenSleep()
 	{
 		Game.AudioManager.BackgroundMusicChannel.SwitchToNextBgmImmediately(null);
 		ScriptingEnvironment.Lua.GlobalEnvironment.Clear();
-		base.OnScreenDeactivate();
+		base.OnScreenSleep();
 	}
 
 	public override void Update(GameTime gameTime)

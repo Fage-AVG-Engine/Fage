@@ -26,9 +26,9 @@ public abstract class CompositeLayerBasedScene(string rootLayerName, FageTemplat
 		RootLayer.DispatchGamePadAsRoot(Game, mgxGamePad);
 	}
 
-	protected override void OnScreenActivate()
+	protected override void OnScreenAwake()
 	{
-		base.OnScreenActivate();
+		base.OnScreenAwake();
 		var touchListener = Game.TouchListener;
 		touchListener.TouchStarted += AcceptTouchInput;
 		touchListener.TouchEnded += AcceptTouchInput;
@@ -43,7 +43,7 @@ public abstract class CompositeLayerBasedScene(string rootLayerName, FageTemplat
 		gamepadListener.TriggerMoved += AcceptGamePadInput;
 	}
 
-	protected override void OnScreenDeactivate()
+	protected override void OnScreenSleep()
 	{
 		var touchListener = Game.TouchListener;
 		touchListener.TouchStarted -= AcceptTouchInput;
@@ -57,6 +57,6 @@ public abstract class CompositeLayerBasedScene(string rootLayerName, FageTemplat
 		gamepadListener.ButtonRepeated -= AcceptGamePadInput;
 		gamepadListener.ThumbStickMoved -= AcceptGamePadInput;
 		gamepadListener.TriggerMoved -= AcceptGamePadInput;
-		base.OnScreenDeactivate();
+		base.OnScreenSleep();
 	}
 }

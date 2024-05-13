@@ -16,7 +16,9 @@ public abstract class Scene(FageTemplateGame game) : GameComponent(game)
 
 	public event Action<Scene>? SceneCompleted;
 
-	protected IServiceProvider DiServices => CommonResources.DiServices;
+	public readonly List<Action<GameTime>> AdditionalUpdatable = [];
+
+	protected IServiceProvider DiServices => Game.DiProvider;
 
 	protected void TriggerSceneCompleted(Scene scene)
 	{
@@ -37,17 +39,17 @@ public abstract class Scene(FageTemplateGame game) : GameComponent(game)
 		}
 	}
 
-	protected virtual void OnScreenActivate() { }
+	protected virtual void OnScreenAwake() { }
 
-	protected virtual void OnScreenDeactivate() { }
+	protected virtual void OnScreenSleep() { }
 
 	internal void Activate()
 	{
-		OnScreenActivate();
+		OnScreenAwake();
 	}
 
 	internal void Deactivate() 
 	{
-		OnScreenDeactivate();
+		OnScreenSleep();
 	}
 }
