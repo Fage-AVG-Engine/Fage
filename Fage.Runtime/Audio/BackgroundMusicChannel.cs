@@ -43,7 +43,7 @@ public class BackgroundMusicChannel : AudioChannelBase
 	/// <summary>
 	/// 切歌过渡效果开始的时机
 	/// </summary>
-	public TimeSpans SwitchingBeginTime { get; set; }
+	public TimeSpan SwitchingBeginTime { get; set; }
 	/// <summary>
 	/// 切歌过渡效果结束的时机
 	/// </summary>
@@ -123,15 +123,31 @@ public class BackgroundMusicChannel : AudioChannelBase
 	{
 		if (nextBgmName != null)
 		{
-			Debug.Assert(nextBgmName != null);
 			_currentBgm = nextBgmName;
 			_currentBgmSong = Contents.Load<Song>(Path.Combine("Bgm", nextBgmName));
 			_nextBgm = null;
 			_nextBgmName = null;
+
 			MediaPlayer.Play(_currentBgmSong);
 		}
 		else
 		{
+			if (_currentBgmSong != null)
+			{
+				if (_currentBgm != null)
+				{
+					Contents.UnloadAsset(_currentBgm);
+					_currentBgm = null;
+				}
+				else
+				{
+					_currentBgmSong.Dispose();
+					_currentBgmSong = null;
+				}
+			}
+			_nextBgm = null;
+			_nextBgmName = null;
+
 			MediaPlayer.Stop();
 		}
 	}
