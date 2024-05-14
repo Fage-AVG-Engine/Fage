@@ -45,7 +45,7 @@ public class SfxChannel : AudioChannelBase, IDisposable
 			{
 				Contents.UnloadAsset(effect.Item1.Name);
 				_unloadQueue.RemoveAt(i);
-				i--;
+				i++;
 			}
 		}
 	}
