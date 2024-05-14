@@ -1,10 +1,12 @@
 ﻿using Fage.Runtime.Collections;
+using Fage.Runtime.Layering;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Fage.Runtime.Scenes.Main.Characters;
 
-public abstract class CharactersManagerBase<TCharacter>(FageTemplateGame game) : GameComponent(game)
+public abstract class CharactersManagerBase<TCharacter>(FageTemplateGame game)
+	: GameComponent(game), ILayer
 	where TCharacter : Character
 {
 	#region 图形资源
@@ -21,6 +23,13 @@ public abstract class CharactersManagerBase<TCharacter>(FageTemplateGame game) :
 	public CharactersLayout Layout = new();
 	protected List<TCharacter> CharactersOnScreen { get; } = [];
 	protected ValueList<Rectangle> CharacterRectangles = new(4);
+
+	#endregion
+
+	#region 图层
+
+	public string Name { get; } = "characters container";
+	public ILayer? Parent { get; set; }
 
 	#endregion
 
@@ -128,8 +137,10 @@ public abstract class CharactersManagerBase<TCharacter>(FageTemplateGame game) :
 		LayoutCharacters(CharactersOnScreen);
 	}
 
-	// 测试需要 protected internal
-	protected internal void LayoutCharacters(List<TCharacter> charactersOnScreen)
+	// 测试需要 internal
+	internal void TestLayoutCharacters(List<TCharacter> charactersOnScreen) => LayoutCharacters(charactersOnScreen);
+
+	protected void LayoutCharacters(List<TCharacter> charactersOnScreen)
 	{
 		CharacterRectangles.Clear();
 		int totalWidth = 0;

@@ -1,4 +1,5 @@
-﻿using Fage.Runtime.Scenes.Main.Branch;
+﻿using Fage.Runtime.Layering;
+using Fage.Runtime.Scenes.Main.Branch;
 using Fage.Runtime.Scenes.Main.Characters;
 using Fage.Runtime.Scenes.Main.Text;
 using Fage.Runtime.Script;
@@ -22,6 +23,8 @@ public class MainScene : CompositeLayerBasedScene
 
 	public const string ContentScopePath = "MainScene";
 
+	private readonly SingleTextureLayer BackgroundLayer = new("main bg");
+
 	public Texture2D? Background
 	{
 		get => _background;
@@ -33,9 +36,14 @@ public class MainScene : CompositeLayerBasedScene
 				ApplyNewBackground();
 		}
 	}
+
 	public Color FallbackBackgroundColor { get; set; } = Color.Black;
 
-	public Rectangle BackgroundSourceBounds { get; set; }
+	public Rectangle BackgroundSourceBounds 
+	{ 
+		get => BackgroundLayer.TextureSourceBounds;
+		set => BackgroundLayer.TextureSourceBounds = value;
+	}
 
 	public FageScript Script { get; set; } = null!;
 
@@ -92,6 +100,7 @@ public class MainScene : CompositeLayerBasedScene
 	{
 		Debug.Assert(Background != null, "在背景加载前调用了" + nameof(ApplyNewBackground));
 
+		BackgroundLayer.Texture = Background;
 		BackgroundSourceBounds = AdaptBounds.FillDestinationByCenter(Background.Bounds, GraphicsDevice.Viewport.Bounds);
 	}
 
@@ -111,6 +120,9 @@ public class MainScene : CompositeLayerBasedScene
 		Characters.LoadContent();
 		BranchOptionPanel.PreloadResource();
 
+		RootLayer.AddBehind(null, BranchOptionPanel.EffectiveLayer);
+		RootLayer.AddBehind(null, BackgroundLayer);
+
 		OnDeviceReset(null, null!); // 反正第二个参数用不到
 
 		TextArea.OnParagraphCompleted += BlockingInstructionCompleted;
@@ -120,6 +132,7 @@ public class MainScene : CompositeLayerBasedScene
 	protected override void OnScreenSleep()
 	{
 		Game.AudioManager.BackgroundMusicChannel.SwitchToNextBgmImmediately(null);
+		ScriptingEnvironment.Lua.LuaVM.Clear();
 		ScriptingEnvironment.Lua.GlobalEnvironment.Clear();
 		base.OnScreenSleep();
 	}
@@ -135,6 +148,8 @@ public class MainScene : CompositeLayerBasedScene
 
 		if (BranchOptionPanel.IsActive)
 			BranchOptionPanel.QuirkUpdate(gameTime);
+
+		UpdateRootLayer(gameTime);
 
 		base.Update(gameTime);
 	}
@@ -170,6 +185,7 @@ public class MainScene : CompositeLayerBasedScene
 
 	public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 	{
+		RootLayer.Draw(gameTime, spriteBatch);
 		if (Background != null)
 		{
 			spriteBatch.Draw(Background, GraphicsDevice.Viewport.Bounds, BackgroundSourceBounds, Color.White);
