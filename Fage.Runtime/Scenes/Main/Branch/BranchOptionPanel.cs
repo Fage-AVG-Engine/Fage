@@ -1,5 +1,6 @@
 ﻿using Fage.Runtime.Collections;
 using Fage.Runtime.Layering;
+using Fage.Runtime.Layers;
 using Fage.Runtime.UI;
 using Fage.Runtime.Utility;
 using Microsoft.Extensions.Options;
@@ -23,6 +24,7 @@ public class BranchOptionPanel
 	private readonly List<ImageBasedButton> _optionButtons = [];
 	private readonly Dictionary<ImageBasedButton, BranchOption> _buttonToOpt = [];
 
+	private readonly InputMaskLayer _inputMask = new("branch options panel input mask", InputMaskMode.AllSources);
 	private readonly CompositeLayer _optionDrawableHolder = new("branch options panel");
 
 	public List<BranchOption> Options { get; set; } = [];
@@ -88,13 +90,20 @@ public class BranchOptionPanel
 	public void Show()
 	{
 		Debug.Assert(_preloadedOptionTexture != null, "调用时机不正确，分支选项按钮资源未加载");
+
+		if (Options.Count == 0)
+			throw new ArgumentException($"选项数量不能为0。\n" +
+				$"脚本路径{_scene.Script.Path}，\n" +
+				$"指令{_scene.Script.CurrentPosition}。");
+
+		_optionDrawableHolder.AddAbove(null, _inputMask);
+
 		int optionNumber = 1;
 
 		int buttonsTotalHeight = 0;
 		int maxButtonWidth = 0;
 
 		List<Point> sizes = new(Options.Count);
-
 		foreach (BranchOption option in Options)
 		{
 			ImageBasedButton optionButton = _optionButtonTemplate.CreateWithText($"{optionNumber}", option.HintText, _content);
