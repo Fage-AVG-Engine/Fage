@@ -33,6 +33,7 @@ public class BranchOptionPanel
 	public bool IsActive { get; private set; }
 
 	public Rectangle PanelAvailableArea;
+	private bool _alreadyClear;
 
 	public BranchOptionPanel(ContentManager content, FageTemplateGame game, MainScene scene, IOptions<BranchPanelOptions> options)
 	{
@@ -85,6 +86,7 @@ public class BranchOptionPanel
 	public void Close()
 	{
 		IsActive = false;
+		_scene.UnblockScriptExecution();
 	}
 
 	public void Show()
@@ -95,7 +97,7 @@ public class BranchOptionPanel
 			throw new ArgumentException($"选项数量不能为0。\n" +
 				$"脚本路径{_scene.Script.Path}，\n" +
 				$"指令{_scene.Script.CurrentPosition}。");
-
+		_alreadyClear = false;
 		_optionDrawableHolder.AddAbove(null, _inputMask);
 
 		int optionNumber = 1;
@@ -139,20 +141,9 @@ public class BranchOptionPanel
 		_preloadedOptionTexture = null;
 	}
 
-	[Obsolete("这个方法是MainScene基于图层之前的过渡措施")]
-	internal void QuirkUpdate(GameTime gt)
+	public void CleanupIfInactive()
 	{
-		_optionDrawableHolder.DispatchMouseAsRoot(_game);
-		_optionDrawableHolder.DispatchKeyboardAsRoot(_game);
-
-		_optionDrawableHolder.Update(gt);
-
-		CleanupIfInactive();
-	}
-
-	private void CleanupIfInactive()
-	{
-		if (IsActive)
+		if (IsActive || _alreadyClear)
 			return;
 
 		Options.Clear();
@@ -165,12 +156,9 @@ public class BranchOptionPanel
 			button.UnloadResource();
 		}
 
-		_optionButtons.Clear();
-	}
+		_optionDrawableHolder.Remove(_inputMask.Name);
 
-	[Obsolete("这个方法是MainScene基于图层之前的过渡措施")]
-	internal void QuirkDraw(GameTime gameTime, SpriteBatch spriteBatch)
-	{
-		_optionDrawableHolder.Draw(gameTime, spriteBatch);
+		_optionButtons.Clear();
+		_alreadyClear = true;
 	}
 }
