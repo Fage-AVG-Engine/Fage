@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Input;
 using System.Diagnostics;
+using Fage.Runtime.Layering;
 
 namespace Fage.Runtime.Scenes.Main.Text;
 
@@ -14,8 +15,12 @@ namespace Fage.Runtime.Scenes.Main.Text;
 /// <remarks>
 /// 这个组件绘制剧情文本和可选的角色姓名。文本字体为动态加载的TrueType字体，背景为可更换的图片。
 /// </remarks>
-public class CurrentTextAreaComponent : IDisposable
+public class CurrentTextAreaComponent : 
+	ILayer, 
+	ILayeredMouseHandler, ILayeredKeyboardHandler,
+	IDisposable
 {
+	protected readonly MainScene mainScene;
 	protected readonly RichTextLayout LayoutEngine;
 
 	protected SpriteBatch SpriteBatch = null!;
@@ -29,7 +34,9 @@ public class CurrentTextAreaComponent : IDisposable
 	/// </summary>
 	public TextPresentingOptions TextPresentingOptions { get; }
 
+	[Obsolete]
 	public event Action<CurrentTextAreaComponent>? OnParagraphCompleted;
+	[Obsolete]
 	public event Action<CurrentTextAreaComponent>? OnLineCompleted;
 
 	public ParagraphTypewriterEffect TypewriterEffect { get; }
@@ -38,9 +45,17 @@ public class CurrentTextAreaComponent : IDisposable
 
 	public bool ParagraphCompleted => TypewriterEffect.ParagraphCompleted;
 
-	public Texture2D? Background { get; set; } = null!;
+	internal Texture2D? Background { get => BackgroundLayer.Texture; set => BackgroundLayer.Texture = value; }
 
 	public CurrentTextLayout Layout;
+
+	public SingleTextureLayer BackgroundLayer { get; private set; } = new("text area background");
+
+	#region 图层
+	public string Name { get; } = "text area";
+	public ILayer? Parent { get; set; }
+
+	#endregion
 
 	/// <summary>
 	/// 文本框绘制区域
@@ -48,12 +63,14 @@ public class CurrentTextAreaComponent : IDisposable
 	/// <remarks>
 	/// 可以通过<see cref="Layout"/>调整边距，来间接调整绘制区域。
 	/// </remarks>
-	public Rectangle DrawBounds;
+	public ref Rectangle DrawBounds => ref BackgroundLayer.DestinationBounds;
 
 	private bool disposedValue;
+	private bool _shouldFetchNext;
 
-	public CurrentTextAreaComponent(Game game, ContentManager contents)
+	public CurrentTextAreaComponent(Game game, MainScene scene, ContentManager contents)
 	{
+		mainScene = scene;
 		RootGame = game;
 		Content = contents;
 		TextPresentingOptions = new(game);
@@ -187,36 +204,11 @@ public class CurrentTextAreaComponent : IDisposable
 
 	public void Update(GameTime gameTime)
 	{
-		MouseStateExtended mState = MouseExtended.GetState();
-		KeyboardStateExtended kState = KeyboardExtended.GetState();
-
-		if (RootGame.IsActive
-			&& (
-				RootGame.Window.ClientBounds.Contains(mState.Position)
-					&& mState.WasButtonJustUp(MouseButton.Left)
-				|| kState.WasKeyJustUp(Keys.Enter))
-			)
+		if (_shouldFetchNext && FetchNextText())
 		{
-			// 没跑完，点了一下
-			if (!TypewriterEffect.CurrentLineCompleted)
-			{
-				// 那就是跳过文本效果的意思
-				TypewriterEffect.SkipCurrentLine();
-				LayoutEngine.Text = TypewriterEffect.ParagraphText[0..TypewriterEffect.LastPosition].ToString();
-				return;
-			}
-
-			// 正经地跑完语句
-			if (!ParagraphCompleted)
-			{
-				TypewriterEffect.StartNextLine();
-				OnLineCompleted?.Invoke(this);
-			}
-			else
-			{
-				OnParagraphCompleted?.Invoke(this);
-			}
+			mainScene.UnblockScriptExecution();
 		}
+		_shouldFetchNext = false;
 
 		if (TypewriterEffect.TryUpdateTextProgress(TextPresentingOptions.TextSpeedInterval, TextPresentingOptions.Font))
 		{
@@ -226,8 +218,7 @@ public class CurrentTextAreaComponent : IDisposable
 
 	public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 	{
-		if (Background != null)
-			spriteBatch.Draw(Background, DrawBounds, Color.White);
+		BackgroundLayer.Draw(gameTime, spriteBatch);
 
 		var cachedPosition = TextPosition;
 
@@ -266,6 +257,57 @@ public class CurrentTextAreaComponent : IDisposable
 				TextPresentingOptions.MarkerColor
 			);
 
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <remarks>
+	/// 感觉这个名字不是很好
+	/// </remarks>
+	/// <returns>返回<see langword="true"/>时，表示应当开始下一段落。
+	/// 返回<see langword="false"/>时，表示已提前呈现一行的全部文本。</returns>
+	private bool FetchNextText()
+	{
+		// 没跑完，点了一下
+		if (!TypewriterEffect.CurrentLineCompleted)
+		{
+			// 那就是跳过文本效果的意思
+			TypewriterEffect.SkipCurrentLine();
+			LayoutEngine.Text = TypewriterEffect.ParagraphText.ToString();
+			return false;
+		}
+
+		// 一行（或段落）跑完，收到输入
+		if (!ParagraphCompleted)
+		{
+			// 段落未完成，还有其它行，开始下一行
+			TypewriterEffect.StartNextLine();
+		}
+		
+		return true;
+	}
+
+	bool ILayeredInputHandler<LayeredMouseEventArgs>.HandleInput(ILayer sender, LayeredMouseEventArgs e)
+	{
+		if (e.IsUserInGame && e.State.WasButtonJustUp(MouseButton.Left))
+		{
+			_shouldFetchNext = true;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool ILayeredInputHandler<LayeredKeyboardEventArgs>.HandleInput(ILayer sender, LayeredKeyboardEventArgs e)
+	{
+		if (e.IsGameActive && e.State.WasKeyJustUp(Keys.Enter))
+		{
+			_shouldFetchNext = true;
+			return true;
+		}
+
+		return false;
 	}
 
 	protected virtual void Dispose(bool disposing)
