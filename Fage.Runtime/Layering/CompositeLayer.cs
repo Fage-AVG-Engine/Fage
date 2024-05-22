@@ -27,7 +27,7 @@ public class CompositeLayer(string name) : ILayer,
 
 	public ILayer? Parent { get; set; }
 
-	public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+	public virtual void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 	{
 		for (int reverseIterator = _subLayers.Count - 1; reverseIterator != -1; reverseIterator--)
 		{
@@ -35,7 +35,7 @@ public class CompositeLayer(string name) : ILayer,
 		}
 	}
 
-	public void Update(GameTime gameTime)
+	public virtual void Update(GameTime gameTime)
 	{
 		foreach (ILayer layer in _subLayers)
 		{
@@ -306,22 +306,22 @@ public class CompositeLayer(string name) : ILayer,
 		return false;
 	}
 
-	public bool HandleInput(ILayer sender, LayeredMouseEventArgs e)
+	public virtual bool HandleInput(ILayer sender, LayeredMouseEventArgs e)
 	{
 		return DispatchInputAsChildren(_checksMouse, sender, e);
 	}
 
-	public bool HandleInput(ILayer sender, LayeredKeyboardEventArgs e)
+	public virtual bool HandleInput(ILayer sender, LayeredKeyboardEventArgs e)
 	{
 		return DispatchInputAsChildren(_checksKeyboard, sender, e);
 	}
 
-	public bool HandleInput(ILayer sender, LayeredTouchEventArgs e)
+	public virtual bool HandleInput(ILayer sender, LayeredTouchEventArgs e)
 	{
 		return DispatchInputAsChildren(_checksTouch, sender, e);
 	}
 
-	public bool HandleInput(ILayer sender, LayeredGamepadEventArgs e)
+	public virtual bool HandleInput(ILayer sender, LayeredGamepadEventArgs e)
 	{
 		return DispatchInputAsChildren(_checksGamepad, sender, e);
 	}

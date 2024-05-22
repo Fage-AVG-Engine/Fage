@@ -101,6 +101,7 @@ public class MainScene : CompositeLayerBasedScene
 		Debug.Assert(Background != null, "在背景加载前调用了" + nameof(ApplyNewBackground));
 
 		BackgroundLayer.Texture = Background;
+		BackgroundLayer.DestinationBounds = GraphicsDevice.Viewport.Bounds;
 		BackgroundSourceBounds = AdaptBounds.FillDestinationByCenter(Background.Bounds, GraphicsDevice.Viewport.Bounds);
 	}
 

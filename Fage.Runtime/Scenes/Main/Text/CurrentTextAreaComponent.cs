@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Input;
 using System.Diagnostics;
 using Fage.Runtime.Layering;
+using Fage.Runtime.Utility;
 
 namespace Fage.Runtime.Scenes.Main.Text;
 
@@ -15,9 +16,7 @@ namespace Fage.Runtime.Scenes.Main.Text;
 /// <remarks>
 /// 这个组件绘制剧情文本和可选的角色姓名。文本字体为动态加载的TrueType字体，背景为可更换的图片。
 /// </remarks>
-public class CurrentTextAreaComponent : 
-	ILayer, 
-	ILayeredMouseHandler, ILayeredKeyboardHandler,
+public class CurrentTextAreaComponent : CompositeLayer,
 	IDisposable
 {
 	protected readonly MainScene mainScene;
@@ -51,12 +50,6 @@ public class CurrentTextAreaComponent :
 
 	public SingleTextureLayer BackgroundLayer { get; private set; } = new("text area background");
 
-	#region 图层
-	public string Name { get; } = "text area";
-	public ILayer? Parent { get; set; }
-
-	#endregion
-
 	/// <summary>
 	/// 文本框绘制区域
 	/// </summary>
@@ -69,6 +62,7 @@ public class CurrentTextAreaComponent :
 	private bool _shouldFetchNext;
 
 	public CurrentTextAreaComponent(Game game, MainScene scene, ContentManager contents)
+		: base("text area")
 	{
 		mainScene = scene;
 		RootGame = game;
@@ -156,7 +150,7 @@ public class CurrentTextAreaComponent :
 	/// <param name="marginBottom"></param>
 	/// <param name="height"></param>
 	/// </devdoc>
-	private void InitializeBoundsByMargin(int marginLeft, int marginRight, int marginBottom, int? height = null)
+	private void InitializeDestBoundsByMargin(int marginLeft, int marginRight, int marginBottom, int? height = null)
 	{
 		Height = height ?? 100;
 
@@ -177,8 +171,9 @@ public class CurrentTextAreaComponent :
 		{
 			Layout.Height = Background.Height;
 		}
-
-		InitializeBoundsByMargin(Layout.MarginLeft, Layout.MarginRight, Layout.MarginBottom, Layout.Height);
+		
+		BackgroundLayer.TextureSourceBounds = Background.Bounds;
+		InitializeDestBoundsByMargin(Layout.MarginLeft, Layout.MarginRight, Layout.MarginBottom, Layout.Height);
 		LayoutEngine.Width = TextAreaWidth;
 	}
 
@@ -186,9 +181,12 @@ public class CurrentTextAreaComponent :
 	{
 		// TODO 可以考虑用素材拼一张背景
 		Background = Content.Load<Texture2D>("CurrentTextBackground");
-		InitializeBoundsByMargin(Layout.MarginLeft, Layout.MarginRight, Layout.MarginBottom, Background.Height);
+
 		ResetLayoutEngine();
 		TextPresentingOptions.ApplyTextSpeed();
+
+		OnDeviceReset();
+		AddBehind(null, BackgroundLayer);
 	}
 
 	public void ResetLayoutEngine()
@@ -202,7 +200,7 @@ public class CurrentTextAreaComponent :
 		TextPresentingOptions.UnloadResources();
 	}
 
-	public void Update(GameTime gameTime)
+	public override void Update(GameTime gameTime)
 	{
 		if (_shouldFetchNext && FetchNextText())
 		{
@@ -214,11 +212,14 @@ public class CurrentTextAreaComponent :
 		{
 			LayoutEngine.Text = TypewriterEffect.ParagraphText[0..TypewriterEffect.LastPosition].ToString();
 		}
+
+		base.Update(gameTime);
 	}
 
-	public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+	public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 	{
-		BackgroundLayer.Draw(gameTime, spriteBatch);
+		// BackgroundLayer.Draw(gameTime, spriteBatch);
+		base.Draw(gameTime, spriteBatch);
 
 		var cachedPosition = TextPosition;
 
@@ -288,7 +289,7 @@ public class CurrentTextAreaComponent :
 		return true;
 	}
 
-	bool ILayeredInputHandler<LayeredMouseEventArgs>.HandleInput(ILayer sender, LayeredMouseEventArgs e)
+	public override bool HandleInput(ILayer sender, LayeredMouseEventArgs e)
 	{
 		if (e.IsUserInGame && e.State.WasButtonJustUp(MouseButton.Left))
 		{
@@ -296,10 +297,10 @@ public class CurrentTextAreaComponent :
 			return true;
 		}
 
-		return false;
+		return base.HandleInput(sender, e);
 	}
 
-	bool ILayeredInputHandler<LayeredKeyboardEventArgs>.HandleInput(ILayer sender, LayeredKeyboardEventArgs e)
+	public override bool HandleInput(ILayer sender, LayeredKeyboardEventArgs e)
 	{
 		if (e.IsGameActive && e.State.WasKeyJustUp(Keys.Enter))
 		{
@@ -307,7 +308,7 @@ public class CurrentTextAreaComponent :
 			return true;
 		}
 
-		return false;
+		return base.HandleInput(sender, e);
 	}
 
 	protected virtual void Dispose(bool disposing)
