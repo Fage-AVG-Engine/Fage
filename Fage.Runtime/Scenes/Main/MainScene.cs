@@ -58,7 +58,7 @@ public class MainScene : CompositeLayerBasedScene
 	public MainScene(FageTemplateGame game) : base("main", game)
 	{
 		Content = new ContentManager(game.Services, Path.Combine(game.Content.RootDirectory, ContentScopePath));
-		TextArea = new(game, Content)
+		TextArea = new(game, this, Content)
 		{
 			Layout = new CurrentTextLayout
 			{
@@ -104,11 +104,6 @@ public class MainScene : CompositeLayerBasedScene
 		BackgroundSourceBounds = AdaptBounds.FillDestinationByCenter(Background.Bounds, GraphicsDevice.Viewport.Bounds);
 	}
 
-	private void BlockingInstructionCompleted(CurrentTextAreaComponent textArea)
-	{
-		_readyForNextInstruction = true;
-	}
-
 	public override void LoadContent()
 	{
 		GraphicsDevice.DeviceReset += OnDeviceReset;
@@ -120,13 +115,17 @@ public class MainScene : CompositeLayerBasedScene
 		Characters.LoadContent();
 		BranchOptionPanel.PreloadResource();
 
+		// TODO RootLayer.AddBehind(null, UIControlsContainer);
 		RootLayer.AddBehind(null, BranchOptionPanel.EffectiveLayer);
+		// TODO RootLayer.AddBehind null BacklogLayer
+		RootLayer.AddBehind(null, Characters);
+		RootLayer.AddBehind(null, TextArea);
 		RootLayer.AddBehind(null, BackgroundLayer);
 
-		OnDeviceReset(null, null!); // 反正第二个参数用不到
+		OnDeviceReset(null, EventArgs.Empty); // 反正第二个参数用不到
 
-		TextArea.OnParagraphCompleted += BlockingInstructionCompleted;
-		TextArea.OnLineCompleted += BlockingInstructionCompleted;
+		// TextArea.OnParagraphCompleted += BlockingInstructionCompleted;
+		// TextArea.OnLineCompleted += BlockingInstructionCompleted;
 	}
 
 	protected override void OnScreenSleep()
@@ -143,23 +142,19 @@ public class MainScene : CompositeLayerBasedScene
 
 		UpdateScript();
 
-		Characters.Update(gameTime);
-		TextArea.Update(gameTime);
-
-		if (BranchOptionPanel.IsActive)
-			BranchOptionPanel.QuirkUpdate(gameTime);
-
 		UpdateRootLayer(gameTime);
+
+		BranchOptionPanel.CleanupIfInactive();
 
 		base.Update(gameTime);
 	}
 
-#if DEBUG
 	protected override void SetupInitialContent()
 	{
+#if DEBUG
 		Debug.Assert(Script != null, "未加载脚本");
-	}
 #endif
+	}
 
 	private void UpdateScript()
 	{
@@ -186,22 +181,6 @@ public class MainScene : CompositeLayerBasedScene
 	public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 	{
 		RootLayer.Draw(gameTime, spriteBatch);
-		if (Background != null)
-		{
-			spriteBatch.Draw(Background, GraphicsDevice.Viewport.Bounds, BackgroundSourceBounds, Color.White);
-		}
-		else
-		{
-			spriteBatch.GraphicsDevice.Clear(FallbackBackgroundColor);
-#if DEBUG
-			spriteBatch.DrawString(CommonResources.DebugFont, "No Background was set", new(64, 64), Color.White, 0, Vector2.Zero, 2.2f, SpriteEffects.None, 0);
-#endif
-		}
-		Characters.Draw(gameTime, spriteBatch);
-		TextArea.Draw(gameTime, spriteBatch);
-
-		if (BranchOptionPanel.IsActive)
-			BranchOptionPanel.QuirkDraw(gameTime, spriteBatch);
 	}
 	protected override void Dispose(bool disposing)
 	{
