@@ -25,7 +25,7 @@ public class BranchOptionPanel
 	private readonly Dictionary<ImageBasedButton, BranchOption> _buttonToOpt = [];
 
 	private readonly InputMaskLayer _inputMask = new("branch options panel input mask", InputMaskMode.AllSources);
-	private readonly CompositeLayer _optionDrawableHolder = new("branch options panel");
+	private readonly SealedCompositeLayer _optionDrawableHolder = new("branch options panel");
 
 	public List<BranchOption> Options { get; set; } = [];
 	public ILayer EffectiveLayer => _optionDrawableHolder;

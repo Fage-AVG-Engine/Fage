@@ -6,7 +6,7 @@ namespace Fage.Runtime.Scenes;
 public abstract class CompositeLayerBasedScene(string rootLayerName, FageTemplateGame game)
 	: Scene(game)
 {
-	protected readonly CompositeLayer RootLayer = new(rootLayerName);
+	protected readonly SealedCompositeLayer RootLayer = new(rootLayerName);
 
 	protected void UpdateRootLayer(GameTime gameTime)
 	{

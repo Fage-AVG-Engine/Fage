@@ -19,7 +19,7 @@ public class TitleScene(FageTemplateGame game) : CompositeLayerBasedScene("title
 
 	protected readonly ContentManager Content = new(game.Content.ServiceProvider, Path.Combine(game.Content.RootDirectory, "Title"));
 	protected readonly SingleTextureLayer BackgroundLayer = new("background");
-	protected readonly CompositeLayer ControlsLayer = new("controls");
+	protected readonly SealedCompositeLayer ControlsLayer = new("controls");
 
 	protected TitleSceneConfiguration Configuration { get; set; } = null!;
 
@@ -67,7 +67,7 @@ public class TitleScene(FageTemplateGame game) : CompositeLayerBasedScene("title
 	/// </remarks>
 	/// <param name="controlsLayer">放置控件的图层</param>
 	[MemberNotNull(nameof(ExitButton), nameof(StartButton), nameof(LoadButton), nameof(SettingsButton))]
-	protected virtual void InitializeControls(CompositeLayer controlsLayer)
+	protected virtual void InitializeControls(SealedCompositeLayer controlsLayer)
 	{
 		if (_controlsInitialized)
 		{
