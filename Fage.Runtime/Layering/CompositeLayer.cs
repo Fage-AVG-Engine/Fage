@@ -168,7 +168,7 @@ public class CompositeLayer(string name) : ILayer,
 		}
 		else
 		{
-			_subLayers.Insert(0, layer);
+			_subLayers.Add(layer);
 			ClassifyLayerToRear(layer);
 		}
 
