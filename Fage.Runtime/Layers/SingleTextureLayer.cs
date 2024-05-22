@@ -16,7 +16,8 @@ public class SingleTextureLayer(string name) : ILayer
 
 	public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
 	{
-		spriteBatch.Draw(Texture, DestinationBounds, TextureSourceBounds, TintColor);
+		if (Texture != null)
+			spriteBatch.Draw(Texture, DestinationBounds, TextureSourceBounds, TintColor);
 	}
 
 	public void Update(GameTime gameTime)
